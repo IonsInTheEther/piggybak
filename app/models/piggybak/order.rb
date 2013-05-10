@@ -112,6 +112,8 @@ module Piggybak
       self.total_due = 0
       self.total = 0
       self.line_items.each do |line_item|
+        # Skip payments to preserve total price of sellables, prevent zeroing out totals
+        next if line_item.line_item_type == "payment"
         if !line_item._destroy
           self.total_due += line_item.price
           if line_item.line_item_type != "payment" 
@@ -122,6 +124,8 @@ module Piggybak
 
       # Postprocess payment last
       self.line_items.payments.each do |line_item|
+        # Add payments to total_due to reflect the proper amount owed
+        self.total_due += line_item.price
         method = "postprocess_payment"
         if line_item.respond_to?("postprocess_payment")
           if !line_item.postprocess_payment
