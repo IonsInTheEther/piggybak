@@ -186,6 +186,7 @@ module Piggybak
             field :user_agent
           end
           list do
+            sort_by :created_at
             field :id
             field :billing_address do
               label "Billing Name"
@@ -201,6 +202,7 @@ module Piggybak
               end
             end
             field :created_at do
+              sort_reverse true
               strftime_format "%d-%m-%Y"
             end
             field :status
