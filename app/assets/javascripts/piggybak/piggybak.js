@@ -12,7 +12,7 @@ $(function() {
 	piggybak.update_tax();
 	$('#new_piggybak_order').validate({
 		submitHandler: function(form) {
-      var submit = $($('#new_piggybak_order input[type=submit]'));
+      var submit = $('#new_piggybak_order input[type=submit]');
       submit.prop('disabled',true);
       submit.attr('value','Processing...');
 			form.submit()
