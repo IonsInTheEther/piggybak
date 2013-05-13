@@ -31,7 +31,7 @@ var piggybak_states = {
 			new_field = $('<select>');
 			$.each(geodata.countries["country_" + country_id], function(i, j) {
 				new_field.append($('<option>').val(j.id).html(j.name));
-			});	
+			});
 		} else {
 			new_field = $('<input>');
 		}
@@ -41,7 +41,15 @@ var piggybak_states = {
 			new_field.val(old_field.val());
 		}
 		old_field.replaceWith(new_field);
-
+		
+		// Sort billing and shipping state selects
+		$("#piggybak_order_billing_address_attributes_state_id").html($("#piggybak_order_billing_address_attributes_state_id option").sort(function (a, b) {
+		    return a.text == b.text ? 0 : a.text < b.text ? -1 : 1
+		}))
+		$("#piggybak_order_shipping_address_attributes_state_id").html($("#piggybak_order_shipping_address_attributes_state_id option").sort(function (a, b) {
+		    return a.text == b.text ? 0 : a.text < b.text ? -1 : 1
+		}))
+				
 		if(block) {
 			block();
 		}
