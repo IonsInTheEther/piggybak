@@ -64,6 +64,9 @@ module Piggybak
         @order.create_payment_shipment
         @order.initialize_user(current_user)
       end
+      if @order.contains_digital_sellables? && !current_user
+        redirect_to login_path and return
+      end        
     end
   
     def receipt
