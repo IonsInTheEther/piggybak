@@ -7,7 +7,7 @@ module Piggybak
       redirect_to products_path and return unless nitems > 0
       @cart.sellables.each do |sellable|
         if sellable[:sellable].sku.include?('connect') && !current_user
-          session[:user_return_path] = '/checkout'
+          session[:user_return_path] = '/checkout/'
           redirect_to(users_sign_in_path, {:notice => "You must log in to purchase a lolo connect+ subscription"}) and return
         end
       end
