@@ -1,5 +1,6 @@
 module Piggybak
   class Cart
+        
     attr_accessor :sellables
     attr_accessor :total
     attr_accessor :errors
@@ -55,6 +56,16 @@ module Piggybak
       cart = to_hash(cookie)
       cart.each { |k, v| cart[k] = params[:quantity][k].to_i }
       to_string(cart)
+    end
+    
+    def is_digital?
+      items = self.items.collect { |li| li[:sellable] }
+      items.all? { |i| i.is_digital? }
+    end
+    
+    def has_digital_sellables?
+      items = self.items.collect { |li| li[:sellable] }
+      items.any? { |i| i.is_digital? }
     end
  
     def to_cookie
