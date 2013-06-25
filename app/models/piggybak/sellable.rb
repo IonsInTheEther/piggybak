@@ -19,4 +19,13 @@ class Piggybak::Sellable < ActiveRecord::Base
   def update_inventory(purchased)
     self.update_attribute(:quantity, self.quantity + purchased)
   end
+  
+  def is_digital?
+    if self.item_type == 'PiggybakVariants::Variant'
+      self.item.item.digital?
+    else
+      self.item.digital?
+    end
+  end
+  
 end
