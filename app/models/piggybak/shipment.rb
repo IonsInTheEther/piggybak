@@ -10,7 +10,7 @@ module Piggybak
     attr_accessible :shipping_method_id, :status
     
     def status_enum
-      ["new", "processing", "shipped"]
+      ["new", "processing", "shipped", "digital - paid"]
     end
   end
 end

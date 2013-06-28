@@ -181,6 +181,8 @@ module Piggybak
       else
         if self.to_be_cancelled
           self.status = "cancelled"
+        elsif line_items.shipments.any? && line_items.shipments.all? { |li| li.shipment.status == "digital - paid" }
+          self.status = "digital - paid"
         elsif line_items.shipments.any? && line_items.shipments.all? { |li| li.shipment.status == "shipped" }
           self.status = "shipped"
         elsif line_items.shipments.any? && line_items.shipments.all? { |li| li.shipment.status == "processing" }
@@ -197,7 +199,7 @@ module Piggybak
     end
 
     def status_enum
-      ["new", "processing", "shipped"]
+      ["new", "processing", "shipped", "digital - paid"]
     end
       
     def avs_address
