@@ -8,7 +8,7 @@ module Piggybak
     validates :shipping_method_id, presence: true
     
     def status_enum
-      ["new", "processing", "shipped"]
+      ["new", "processing", "shipped", "digital - paid"]
     end
   end
 end

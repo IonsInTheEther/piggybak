@@ -37,6 +37,13 @@ module Piggybak
             @order.ip_address = request.remote_ip 
             @order.user_agent = request.user_agent  
             @order.add_line_items(@cart)
+            
+            if @order.has_digital_sellables? && !@order.has_physical_sellables?
+              shipment_line_item = @order.line_items.detect { |li| li.line_item_type == "shipment" }
+              if shipment_line_item.present? && shipment_line_item.shipment.present?
+                shipment_line_item.shipment.status = "digital - paid"
+              end
+            end
 
             if Piggybak.config.logging
               logger.info "#{request.remote_ip}:#{Time.now.strftime("%Y-%m-%d %H:%M")} Order contains: #{cookies["cart"]} for user #{current_user ? current_user.email : 'guest'}"
