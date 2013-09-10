@@ -28,4 +28,12 @@ class Piggybak::Sellable < ActiveRecord::Base
     end
   end
   
+  def is_dropship_product?
+    if self.item_type == 'PiggybakVariants::Variant'
+      self.item.item.dropship?
+    else
+      self.item.dropship?
+    end
+  end
+  
 end
