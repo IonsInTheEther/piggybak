@@ -63,6 +63,11 @@ module Piggybak
       items.all? { |i| i.is_digital? }
     end
     
+    def has_dropship_sellables?
+      items = self.items.collect { |li| li[:sellable] }
+      items.any? { |i| i.is_dropship_product? }
+    end
+    
     def has_digital_sellables?
       items = self.items.collect { |li| li[:sellable] }
       items.any? { |i| i.is_digital? }
