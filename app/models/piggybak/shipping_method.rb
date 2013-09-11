@@ -33,7 +33,15 @@ module Piggybak
     end
 
     def self.lookup_methods(cart)
+      if cart.is_digital?
+        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free")
+      elsif cart.has_dropship_sellables? && cart.total >= 60
+        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free")
+      elsif cart.has_dropship_sellables? && cart.total < 60
+        active_methods = ShippingMethod.where(:description => "Standard Shipping")
+      else
       active_methods = ShippingMethod.where(active: true)
+      end
 
       methods = active_methods.inject([]) do |arr, method|
         klass = method.klass.constantize
