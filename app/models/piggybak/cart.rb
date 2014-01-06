@@ -72,6 +72,11 @@ module Piggybak
       items = self.items.collect { |li| li[:sellable] }
       items.any? { |i| i.is_digital? }
     end
+    
+    def has_subscription?
+      items = self.items.collect { |li| li[:sellable] }
+      items.any? { |i| i.description.include? "connect+" }
+    end
  
     def to_cookie
       cookie = ''
