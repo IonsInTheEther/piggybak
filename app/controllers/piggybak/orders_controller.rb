@@ -5,7 +5,7 @@ module Piggybak
       @cart = Piggybak::Cart.new(request.cookies["cart"])
       nitems = @cart.sellables.inject(0) { |nitems, item| nitems + item[:quantity] }
       redirect_to products_path and return unless nitems > 0
-      if !current_user && @cart.has_digital_sellables?
+      if !current_user && @cart.has_subscription?
         session[:user_return_path] = '/checkout/'
         redirect_to(users_sign_in_path, {:notice => "You must log in to purchase a lolo connect+ subscription"}) and return
       end
@@ -38,7 +38,7 @@ module Piggybak
             @order.user_agent = request.user_agent  
             @order.add_line_items(@cart)
             
-            if @order.has_digital_sellables? && !@order.has_physical_sellables?
+            if @order.has_subscription? && !@order.has_physical_sellables?
               shipment_line_item = @order.line_items.detect { |li| li.line_item_type == "shipment" }
               if shipment_line_item.present? && shipment_line_item.shipment.present?
                 shipment_line_item.shipment.status = "digital - paid"
