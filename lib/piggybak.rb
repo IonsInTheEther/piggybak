@@ -186,10 +186,15 @@ module Piggybak
             field :user_agent
           end
           list do
-            sort_by :created_at
-            field :id
+            sort_by :created_at do
+              column_width 100
+            end
+            field :id do
+              column_width 100
+            end
             field :billing_address do
               label "Billing Name"
+              column_width 180
               pretty_value do
                 "#{value.lastname}, #{value.firstname}"
               end
@@ -197,15 +202,25 @@ module Piggybak
               sortable false
             end
             field :total do
+              column_width 75
               formatted_value do
                 "$%.2f" % value
               end
             end
             field :created_at do
+              column_width 100
               sort_reverse true
               strftime_format "%d-%m-%Y"
             end
-            field :status
+            field :status do
+              column_width 100
+            end
+            field :line_items do
+              label "Products"
+              pretty_value do
+                "#{value.sellables.collect {|li| li.description } * ", "}"
+              end
+            end
           end
           edit do
             field :recorded_changer, :hidden do
