@@ -37,11 +37,11 @@ module Piggybak
 
     def self.lookup_methods(cart)
       if cart.is_digital?
-        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free")
+        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free").all
       elsif cart.has_dropship_sellables? && cart.total >= 60
-        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free")
+        active_methods = ShippingMethod.where(:klass => "::Piggybak::ShippingCalculator::Free").all
       elsif cart.has_dropship_sellables? && cart.total < 60
-        active_methods = ShippingMethod.where(:description => "Standard Shipping")
+        active_methods = ShippingMethod.where(:description => "Standard Shipping").all
       else
         active_methods = ShippingMethod.find_all_by_active(true)
       end
