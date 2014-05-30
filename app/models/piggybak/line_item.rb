@@ -64,7 +64,7 @@ module Piggybak
 
       self.description = sellable.description
       self.unit_price = sellable.price
-      self.price = self.unit_price*self.quantity.to_i
+      self.price = self.unit_price*self.quantity.to_i if self.new_record?
     end
 
     def preprocess_shipment
