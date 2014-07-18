@@ -5,9 +5,18 @@ module Piggybak
       @cart = Piggybak::Cart.new(request.cookies["cart"])
       nitems = @cart.sellables.inject(0) { |nitems, item| nitems + item[:quantity] }
       redirect_to products_path and return unless nitems > 0
+
       if !current_user && @cart.has_subscription?
         session[:user_return_path] = '/checkout/'
         redirect_to(users_sign_in_path, {:notice => "You must log in to purchase a lolo connect+ subscription"}) and return
+      end
+
+      @billing_address = Piggybak::Address.new
+      @shipping_address = Piggybak::Address.new
+      if current_user && current_user.piggybak_orders.present?
+        @billing_address = current_user.piggybak_orders.first.billing_address
+        @shipping_address = current_user.piggybak_orders.first.shipping_address
+        @cards = current_user.customers.group('last_4,exp_month,exp_year').order('created_at DESC')
       end
 
       if request.post?
