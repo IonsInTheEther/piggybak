@@ -8,6 +8,7 @@ class Piggybak::Sellable < ActiveRecord::Base
   validates_numericality_of :quantity, :only_integer => true, :greater_than_or_equal_to => 0
 
   has_many :line_items, :as => :reference, :inverse_of => :reference
+  has_many :digital_attachments
 
   def admin_label
     self.description
