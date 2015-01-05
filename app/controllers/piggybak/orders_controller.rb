@@ -106,7 +106,7 @@ module Piggybak
     def download
       @order = Piggybak::Order.find(params[:id])
 
-      if can?(:download, @order)
+      if current_user && current_user.can_admin?
         render :layout => false
       else
         render "no_access"
@@ -116,7 +116,7 @@ module Piggybak
     def email
       order = Piggybak::Order.find(params[:id])
 
-      if can?(:email, order)
+      if current_user && current_user.can_admin?
         Piggybak::Notifier.order_notification(order).deliver
         flash[:notice] = "Email notification sent."
         OrderNote.create(:order_id => order.id, :note => "Email confirmation manually sent.", :user_id => current_user.id)
@@ -128,7 +128,7 @@ module Piggybak
     def cancel
       order = Piggybak::Order.find(params[:id])
 
-      if can?(:cancel, order)
+      if current_user && current_user.can_admin?
         order.recorded_changer = current_user.id
         order.disable_order_notes = true
 
