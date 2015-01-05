@@ -16,7 +16,6 @@ module Piggybak
       if current_user && current_user.piggybak_orders.present?
         @billing_address = current_user.piggybak_orders.first.billing_address
         @shipping_address = current_user.piggybak_orders.first.shipping_address
-        @cards = current_user.customers.group('last_4,exp_month,exp_year').order('created_at DESC')
       end
 
       if request.post?
