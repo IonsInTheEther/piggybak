@@ -47,10 +47,10 @@ module Piggybak
             @order.user_agent = request.user_agent  
             @order.add_line_items(@cart)
             
-            if @order.has_subscription? && !@order.has_physical_sellables?
+            if !@order.has_physical_sellables? && @order.has_digital_sellables?
               shipment_line_item = @order.line_items.detect { |li| li.line_item_type == "shipment" }
               if shipment_line_item.present? && shipment_line_item.shipment.present?
-                shipment_line_item.shipment.status = "digital - paid"
+                shipment_line_item.shipment.status = "shipped"
               end
             end
 
