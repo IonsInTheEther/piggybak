@@ -13,7 +13,11 @@ module Piggybak
     accepts_nested_attributes_for :order_notes
 
     attr_accessor :recorded_changes, :recorded_changer,
-                  :was_new_record, :disable_order_notes 
+                  :was_new_record, :disable_order_notes
+
+    attr_accessible :user_id, :email, :phone, :billing_address_attributes,
+                    :shipping_address_attributes, :line_items_attributes,
+                    :order_notes_attributes, :details, :recorded_changer, :ip_address
 
     validates :status, presence: true
     validates :email, presence: true
@@ -29,8 +33,6 @@ module Piggybak
     before_save :postprocess_order, :update_status, :set_new_record
     after_save :record_order_note
     after_save :deliver_order_confirmation, :if => Proc.new { |order| !order.confirmation_sent }
-
-    default_scope { order('created_at ASC') }
 
     def deliver_order_confirmation
       Piggybak::Notifier.order_notification(self).deliver
@@ -73,7 +75,6 @@ module Piggybak
     end
 
     def postprocess_order
-
       # Mark line items for destruction if quantity == 0
       self.line_items.each do |line_item|
         if line_item.quantity == 0
@@ -126,7 +127,6 @@ module Piggybak
       self.line_items.payments.each do |line_item|
         # Add payments to total_due to reflect the proper amount owed
         self.total_due += line_item.price
-        method = "postprocess_payment"
         if line_item.respond_to?("postprocess_payment")
           if !line_item.postprocess_payment
             return false
@@ -164,7 +164,7 @@ module Piggybak
 
       if !self.line_items.detect { |li| li.line_item_type == "payment" }
         payment_line_item = Piggybak::LineItem.new({ :line_item_type => "payment" })
-        payment_line_item.build_payment 
+        payment_line_item.build_payment
         self.line_items << payment_line_item
       end
     end

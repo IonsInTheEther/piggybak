@@ -4,6 +4,8 @@ module Piggybak
     acts_as_changer
     belongs_to :sellable
 
+    attr_accessible :sellable_id, :price, :unit_price, :description, :quantity, :line_item_type, :shipment_attributes, :payment_attributes, :coupon_application_attributes
+
     validates :price, presence: true
     validates :description, presence: true
     validates :quantity, presence: true

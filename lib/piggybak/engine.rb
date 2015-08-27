@@ -161,6 +161,7 @@ module Piggybak
             field :user_agent
           end
           list do
+            sort_by :created_at          # Sort column (default is primary key)
             field :id
             field :billing_address do
               label "Billing Name"
@@ -280,7 +281,7 @@ module Piggybak
             field :zip
             field :country
             field :state_id, :hidden do
-				help ""
+				    help ""
             end
             field :location do
               partial "location_select"
@@ -326,18 +327,6 @@ module Piggybak
               end 
               read_only do
                 !bindings[:object].new_record?
-              end 
-            end
-            field :number do
-              help "Required"
-              visible do
-                bindings[:object].new_record?
-              end 
-            end
-            field :verification_value do
-              help "Required"
-              visible do
-                bindings[:object].new_record?
               end 
             end
             field :month do

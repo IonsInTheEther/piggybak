@@ -6,7 +6,9 @@ module Piggybak
 
     validates :status, presence: true
     validates :shipping_method_id, presence: true
-    
+
+    attr_accessible :shipping_method_id, :status
+
     def status_enum
       ["new", "processing", "shipped", "digital - paid"]
     end

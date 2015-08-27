@@ -1,7 +1,7 @@
 module Piggybak
   class OrderNote < ActiveRecord::Base
-    validates :user_id, presence: true
-    validates :order_id, presence: true
+    attr_accessible :user_id, :order_id, :note, :created_at
+    validates_presence_of :user_id, :order_id
 
     belongs_to :order
     belongs_to :user

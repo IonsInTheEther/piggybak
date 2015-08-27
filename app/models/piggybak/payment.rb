@@ -5,13 +5,12 @@ module Piggybak
     belongs_to :line_item
 
     validates :status, presence: true
-    validates :payment_method_id, presence: true
-    validates :month, presence: true
-    validates :year, presence: true
+    attr_accessor :stripe_token, :reorder_customer
+    attr_accessible :stripe_token, :reorder_customer
 
-    attr_accessor :number
-    attr_accessor :verification_value
-    
+    validates_presence_of :stripe_token, :on => :create, :message => 'There was an issue processing payment. Please try again later. (001)', :if => ->(payment){payment.reorder_customer == 'new_card'}
+    validates_presence_of :reorder_customer, :on => :create, :message => 'There was an issue processing payment. Please try again later. (002)', :unless => ->(payment){payment.stripe_token.present?}
+
     def status_enum
       ["paid"]
     end
@@ -24,31 +23,81 @@ module Piggybak
       Time.now.year.upto(Time.now.year + 10).to_a
     end
 
-    def credit_card
-      { "number" => self.number,
-        "month" => self.month,
-        "year" => self.year,
-        "verification_value" => self.verification_value,
-        "first_name" => self.line_item ? self.line_item.order.billing_address.firstname : nil,
-        "last_name" => self.line_item ? self.line_item.order.billing_address.lastname : nil }
-    end
-
     def process(order)
+      logger = Logger.new("#{Rails.root}/#{Piggybak.config.logging_file}")
       return true if !self.new_record?
+      lolo_customer = nil
+      stripe_customer = nil
 
-      ActiveMerchant::Billing::Base.mode = Piggybak.config.activemerchant_mode
+      calculator = ::PiggybakStripe::PaymentCalculator::Stripe.new(self.payment_method)
+      Stripe.api_key = calculator.secret_key
+      begin
 
-      payment_gateway = self.payment_method.klass.constantize
-      gateway = payment_gateway::KLASS.new(self.payment_method.key_values)
-      p_credit_card = ActiveMerchant::Billing::CreditCard.new(self.credit_card)
-      gateway_response = gateway.authorize(order.total_due*100, p_credit_card, :address => order.avs_address)
-      if gateway_response.success?
-        self.attributes = { :transaction_id => payment_gateway.transaction_id(gateway_response),
-                            :masked_number => self.number.mask_cc_number }
-        gateway.capture(order.total_due*100, gateway_response.authorization, { :credit_card => p_credit_card } )
+        plan = nil
+        credit = 0
+
+        order.line_items.sellables.each do |line_item|
+          if line_item.sellable.sku.include?('connect')
+            plan = Plan.find_by_sellable_id(line_item.sellable.id)
+            credit = line_item.sellable.price
+          end
+        end
+
+        # Create a Customer
+        if self.stripe_token.present?
+          stripe_customer = Stripe::Customer.create(
+              :card => self.stripe_token,
+              :description => "#{order.billing_address.firstname} #{order.billing_address.lastname} (#{order.email})",
+              :plan => plan.present? ? plan.name : nil,
+              :email => order.email,
+              :account_balance => -(credit * 100).to_i
+          )
+        end
+
+        # fail if customer does not belong to user
+        if self.reorder_customer == 'new_card'
+          lolo_customer = Customer.create(
+              :user_id => order.user_id,
+              :stripe_id => stripe_customer.id,
+              :last_4 => stripe_customer.active_card[:last4],
+              :card_type => stripe_customer.active_card[:type],
+              :exp_month => stripe_customer.active_card[:exp_month],
+              :exp_year => stripe_customer.active_card[:exp_year]
+          )
+        else
+          lolo_customer = Customer.find(self.reorder_customer)
+          raise 999 if lolo_customer.user_id != order.user_id
+        end
+
+        charge = Stripe::Charge.create({
+                                           :amount => (order.total_due * 100).to_i,
+                                           :currency => "usd",
+                                           # :card => self.stripe_token,
+                                           # A customer can be charged instead of a card:
+                                           :customer => lolo_customer.stripe_id,
+                                           :description => "Charge for #{order.email}"
+                                       })
+
+        if plan.present?
+          Subscription.create(:customer_id => lolo_customer.id,
+                              :plan_id => plan.id,
+                              :expires_at => plan.duration_in_months.months.from_now,
+                              :status => 'active')
+          unless order.user.has_role?(:connect_plus_user)
+            order.user.roles << Role.find_by_name('ConnectPlusUser')
+          end
+        end
+
+        self.update(transaction_id: charge.id, masked_number: charge.card.last4)
+
         return true
-      else
-        self.errors.add :payment_method_id, gateway_response.message
+      rescue Stripe::CardError => e
+        self.errors.add :payment_method_id, e.message
+        logger.error 'Stripe CardError: ' + e.message
+        return false
+      rescue => e
+        logger.error e.message
+        self.errors.add :payment_method_id, "An error has occurred. Please contact support@lolofit.com to continue with your order."
         return false
       end
     end
@@ -71,18 +120,5 @@ module Piggybak
       end
     end
 
-    validates_each :payment_method_id do |record, attr, value|
-      if record.new_record?
-        credit_card = ActiveMerchant::Billing::CreditCard.new(record.credit_card)
-     
-        if !credit_card.valid?
-          credit_card.errors.each do |key, value|
-            if value.any? && !["first_name", "last_name", "type"].include?(key)
-              record.errors.add key, (value.is_a?(Array) ? value.join(', ') : value)
-            end
-          end
-        end
-      end
-    end
   end
 end

@@ -24,7 +24,7 @@ module Piggybak
 
         begin
           ActiveRecord::Base.transaction do
-            @order = Piggybak::Order.new(orders_params)
+            @order = Piggybak::Order.new(params[:order])
             @order.create_payment_shipment
 
             if Piggybak.config.logging
@@ -86,8 +86,8 @@ module Piggybak
         @order.create_payment_shipment
         @order.initialize_user(current_user)
       end
-      if @order.contains_digital_sellables? && !current_user
-        redirect_to login_path and return
+      if @order.has_subscription? && !current_user
+        redirect_to main_app.login_path and return
       end        
     end
   
