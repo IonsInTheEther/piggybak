@@ -32,7 +32,7 @@ module Piggybak
     validate :number_payments
     before_save :postprocess_order, :update_status, :set_new_record
     after_save :record_order_note
-    after_save :deliver_order_confirmation, :if => Proc.new { |order| !order.confirmation_sent }
+    after_commit :deliver_order_confirmation, :if => Proc.new { |order| !order.confirmation_sent }
 
     def deliver_order_confirmation
       Piggybak::Notifier.order_notification(self).deliver
